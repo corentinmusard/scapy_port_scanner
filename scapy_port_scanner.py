@@ -33,19 +33,21 @@ def arguments():
     global args
 
     parser = argparse.ArgumentParser(
-    description='Port scanner',epilog='/!\ Nmap and scapy are required to use this script')
+    prog='scapy_port_scanner.py', description='Port scanner',
+    epilog='/!\ Nmap and scapy are required to use this script')
 
-    args = parser.add_argument(
-        '-t', '--target', type=str, metavar='target', default='localhost',
-        help='The target to scan')
-    args = parser.add_argument(
+    parser.add_argument(
+        '-t', '--target', type=str, metavar='target', default='localhost', help='The target to scan')
+    parser.add_argument(
         '-v6', '--ipv6', action='store_true', help='Use IPv6 address')
-    args = parser.add_argument(
-        '-v', '--verbosity', type=int, metavar='level', default='0',
-        help='The verbosity level')
-    args = parser.add_argument(
-        '--top-ports', type=int, metavar='N', default='1000',
-        help='The N most common port to scan')
+    parser.add_argument(
+        '-v', '--verbosity', action='count', default=0, help='The verbosity level, use -vv or more')
+    parser.add_argument(
+        '--top-ports', type=int, metavar='N', default='1000', help='The N most common port to scan')
+    parser.add_argument(
+        '-p-', dest='all_ports', action='store_true', help='Scan all ports (65535 ports)')
+    parser.add_argument(
+        '--version', action='version', version='%(prog)s v0.1')
 
     scan = parser.add_argument_group('SCANNING TECHNIQUES')
     scan = scan.add_mutually_exclusive_group()
@@ -91,12 +93,13 @@ def TCP_flags():
     TCP_flags.CWR = 0x80
 
 class GrabUrl(threading.Thread):
-    def __init__(self, service):
+    def __init__(self, service, family):
         threading.Thread.__init__(self)
         self.service = service
+        self.family = family
     def run(self):
         global opened, closed
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s = socket.socket(self.family, socket.SOCK_STREAM)
         s.settimeout(timeout)
 
         if not s.connect_ex((args.target, self.service[1])):
@@ -109,13 +112,14 @@ class GrabUrl(threading.Thread):
         pool.release()
 
 class scanThread(threading.Thread):
-    def __init__(self,port_list):
+    def __init__(self,port_list, family):
         threading.Thread.__init__(self)
         self.port_list = port_list
+        self.family = family
     def run(self):
         for i in self.port_list:
             pool.acquire()
-            graburl=GrabUrl(i)
+            graburl=GrabUrl(i, self.family)
             graburl.setDaemon(True)
             graburl.start()
 
@@ -128,7 +132,7 @@ def connect_scan():
 
     port_list = most_used_ports()
     
-    handler=scanThread(port_list)
+    handler=scanThread(port_list, family)
     handler.start()
     handler.join()
 
@@ -294,19 +298,23 @@ def most_used_ports(proto='tcp'):
         for line in f:
             if line.startswith('#'):
                 continue
-            
-            name     = line.split()[0]
-            port     = line.split()[1].split('/')[0]
+
             protocol = line.split()[1].split('/')[1]
-            freq     = line.split()[2]
             if protocol == proto:
+                name     = line.split()[0]
+                port     = line.split()[1].split('/')[0]
+                freq     = line.split()[2]
                 D.append([name, int(port), protocol, freq])
 
         D = sorted(D, key=getFreq, reverse=True)
-        return D[:args.top_ports]
+        if args.all_ports:
+            return D
+        else:
+            return D[:args.top_ports]
 
 def check_ip():
     #TODO: ipv6
+    #TODO: gestion of urls
     global timeout
     ip = args.target
 
@@ -321,13 +329,12 @@ def check_ip():
             
 
 def config():
-    start_time = datetime.now()
+    arguments()
 
     if not is_tool('nmap'):
         xprint('Nmap is required to use this script', 2)
         exit()
 
-    arguments()
     colors()
     TCP_flags()
     check_ip()
@@ -336,33 +343,38 @@ def config():
     global opened, closed, filtered, openedFiltered, unfiltered
     opened, closed, filtered, openedFiltered, unfiltered = 0, 0, 0, 0, 0
 
-    maxconn=25
+    maxconn=10
+
+    global pool
     pool=threading.BoundedSemaphore(value=maxconn)
 
    
 
 def main():
+    start_time = datetime.now()
+    config()
+
     hostip = socket.gethostbyname(args.target)
     xprint("Scan for {} with IP: {}".format(args.target, hostip), 3)
 
     if args.sC:
         connect_scan()
     elif args.sU:
-        opened, closed, filtered, openedFiltered = udp_scan()
+        udp_scan()
     elif args.sS:
-        opened, closed, filtered = syn_scan('S')
+        syn_scan('S')
     elif args.sF:
-        closed, filtered, openedFiltered= fin_scan('F')
+        fin_scan('F')
     elif args.sN:
-        closed, filtered, openedFiltered= fin_scan('')
+        fin_scan('')
     elif args.sX:
-        closed, filtered, openedFiltered= fin_scan('FPU')
+        fin_scan('FPU')
     elif args.sA:
-        filtered, unfiltered = ack_scan()
+        ack_scan()
     elif args.scanflags:
         flag = scanflags()
         xprint("Starting scan with flag : {}".format(flag), 3)
-        opened, closed, filtered = syn_scan(flag)
+        syn_scan(flag)
     else:
         xprint("No scan type choosed", 3)
         exit()

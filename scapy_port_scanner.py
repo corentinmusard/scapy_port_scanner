@@ -8,8 +8,6 @@ from scapy.all import *
 import time
 from datetime import datetime
 import threading
-import logging
-import random
 
 def is_tool(name):
     #Check whether `name` is on PATH and marked as executable.
@@ -92,16 +90,35 @@ def TCP_flags():
     TCP_flags.ECE = 0x40
     TCP_flags.CWR = 0x80
 
-class GrabUrl(threading.Thread):
-    def __init__(self, service, family):
+class start_thread(threading.Thread):
+    def __init__(self, **kwargs):
+        threading.Thread.__init__(self)
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+    def run(self):
+        if not hasattr(self, 'family'):
+            self.family = ''
+        if not hasattr(self, 'flag'):
+            self.flag = ''
+
+        for service in self.port_list:
+            pool.acquire()
+            scanport = getattr(sys.modules[__name__], self.t + 'Thread')(service, flag=self.flag, family=self.family)
+            scanport.setDaemon(True)
+            scanport.start()
+            scanport.join()
+
+class connectThread(threading.Thread):
+    def __init__(self, service, **kwargs):
         threading.Thread.__init__(self)
         self.service = service
         self.family = family
+        for key, value in kwargs.items():
+            setattr(self, key, value)
     def run(self):
         global opened, closed
         s = socket.socket(self.family, socket.SOCK_STREAM)
         s.settimeout(timeout)
-
         if not s.connect_ex((args.target, self.service[1])):
             xprint("Port {} {} opened".format(self.service[1], self.service[0]), 1)
             opened += 1
@@ -110,18 +127,6 @@ class GrabUrl(threading.Thread):
             closed += 1
         s.close()
         pool.release()
-
-class scanThread(threading.Thread):
-    def __init__(self,port_list, family):
-        threading.Thread.__init__(self)
-        self.port_list = port_list
-        self.family = family
-    def run(self):
-        for i in self.port_list:
-            pool.acquire()
-            graburl=GrabUrl(i, self.family)
-            graburl.setDaemon(True)
-            graburl.start()
 
 def connect_scan():
     xprint("Starting Connect Scan", 3)
@@ -132,141 +137,159 @@ def connect_scan():
 
     port_list = most_used_ports()
     
-    handler=scanThread(port_list, family)
+    handler = start_thread(port_list=port_list, family=family, t='connect')
     handler.start()
     handler.join()
 
-def connect_scan_old():
-    xprint("Starting Connect Scan", 3)
-    global opened, closed
-    if args.ipv6:
-        family = socket.AF_INET6
-    else:
-        family = socket.AF_INET
-
-    port_list = most_used_ports()
-    for service in port_list:
-        s = socket.socket(family, socket.SOCK_STREAM)
-        s.settimeout(timeout)
-
-        if not s.connect_ex((args.target, service[1])):
-            xprint("Port {} {} opened".format(service[1], service[0]), 1)
-            opened += 1
-        else:
-            xprint("Port {} closed".format(service[1]), 2, 1)
-            closed += 1
-        s.close()
-
-def syn_scan(flag):
-    xprint("Starting SYN Scan", 3)
-    opened, closed, filtered = 0, 0, 0
-    port_list = most_used_ports()
-    for service in port_list:
-        target = IP(dst=args.target)/TCP(flags=flag, dport=service[1])
+class SynThread(threading.Thread):
+    def __init__(self, service, **kwargs):
+        threading.Thread.__init__(self)
+        self.service = service
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+    def run(self):
+        global opened, closed, filtered
+        target = IP(dst=args.target)/TCP(flags=self.flag, dport=self.service[1])
         res = sr1(target, timeout=timeout, verbose=0)
         if res is None:
             filtered += 1
-            xprint("Port {} filtered".format(service[1]), 3, 1)
+            xprint("Port {} filtered".format(self.service[1]), 3, 1)
         elif 'ICMP' in res :
             if res['ICMP'].type == 3 and res['ICMP'].code in [0, 1, 2, 9, 10, 13]:
                 filtered += 1
-                xprint("Port {} filtered".format(service[1]), 3)
+                xprint("Port {} filtered".format(self.service[1]), 3)
             else:
                 xprint('autre')
-        elif res['TCP'].flags & TCP_flags.SYN:
-            opened += 1
-            xprint("Port {} {} opened".format(service[1], service[0]), 1)
-            seq = res.seq + 1
-            target = IP(dst=args.target)/TCP(flags='R', dport=service[1], seq=seq)
-            send(target)
-        elif res['TCP'].flags & TCP_flags.RST:
-            closed += 1
-            xprint("Port {} closed".format(service[1]), 2, 1)
+        elif 'TCP' in res:
+            if res['TCP'].flags & TCP_flags.SYN:
+                opened += 1
+                xprint("Port {} {} opened".format(self.service[1], self.service[0]), 1)
+                seq = res.seq + 1
+                target = IP(dst=args.target)/TCP(flags='R', dport=self.service[1], seq=seq)
+                send(target)
+            elif res['TCP'].flags & TCP_flags.RST:
+                closed += 1
+                xprint("Port {} closed".format(self.service[1]), 2, 1)
+            else:
+                xprint('autre')
         else:
             xprint('autre')
-        
-    return opened, closed, filtered
+        pool.release()
 
-def udp_scan():
-    xprint("Starting UDP Scan", 3)
-    opened, closed, filtered, openedFiltered = 0, 0, 0, 0
-    port_list = most_used_ports('udp')
-    for service in port_list:
-        target = IP(dst=args.target)/UDP(dport=service[1])
+def syn_scan(flag):
+    xprint("Starting SYN Scan", 3)
+    port_list = most_used_ports()
+    handler = start_thread(port_list=port_list, flag=flag, t='Syn')
+    handler.start()
+    handler.join()
+
+class FinThread(threading.Thread):
+    def __init__(self, service, **kwargs):
+        threading.Thread.__init__(self)
+        self.service = service
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+    def run(self):
+        global closed, filtered, openedFiltered
+        target = IP(dst=args.target)/TCP(flags=self.flag, dport=self.service[1])
+        res = sr1(target, timeout=timeout, verbose=0)
+        if res is None:
+            openedFiltered += 1
+            xprint("Port {} opened|filtered".format(self.service[1]), 2, 1)
+        elif 'TCP' in res:
+            if res['TCP'].flags & TCP_flags.RST:
+                closed += 1
+                xprint("Port {} {} closed".format(self.service[1], self.service[0]), 2)
+            else:
+                xprint('autre')
+        elif 'ICMP' in res:
+            if res['ICMP'].type == 3  and res['ICMP'].code in [0, 1, 2, 9, 10, 13]:
+                filtered += 1
+                xprint("Port {} filtered".format(self.service[1]), 3)
+            else:
+                xprint('autre')
+        else:
+            xprint('autre')
+        pool.release()
+
+def fin_scan(flag):
+    xprint("Starting FIN Scan", 3)
+    port_list = most_used_ports()
+    handler=start_thread(port_list=port_list, flag=flag, t='Fin')
+    handler.start()
+    handler.join()
+
+class UdpThread(threading.Thread):
+    def __init__(self, service, **kwargs):
+        threading.Thread.__init__(self)
+        self.service = service
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+    def run(self):
+        global opened, closed, filtered, openedFiltered
+        target = IP(dst=args.target)/UDP(dport=self.service[1])
         res = sr1(target, timeout=timeout, verbose=0)
         if res is None:
             pass
             openedFiltered += 1
-            xprint("Port {} opened|filtered".format(service[1]), 2)
+            xprint("Port {} opened|filtered".format(self.service[1]), 2)
         elif 'ICMP' in res:
             if res['ICMP'].type == 3 and res['ICMP'].code == 3:
                 closed += 1
-                xprint("Port {} closed".format(service[1]), 2, 1)
+                xprint("Port {} closed".format(self.service[1]), 2, 1)
                 time.sleep(0.9)
             elif res['ICMP'].type == 3 and res['ICMP'].code in [0, 1, 2, 9, 10, 13]:
                 filtered += 1
-                xprint("Port {} filtered".format(service[1]), 3)
+                xprint("Port {} filtered".format(self.service[1]), 3)
             else:
                 xprint('autre')
         elif 'UDP' in res:
             opened += 1
-            xprint("Port {} {} opened".format(service[1], service[0]), 1)
+            xprint("Port {} {} opened".format(self.service[1], self.service[0]), 1)
         else:
             xprint('autre')
-        
-    return opened, closed, filtered, openedFiltered
+        pool.release()
 
-def fin_scan(flag):
-    xprint("Starting FIN Scan", 3)
-    closed,filtered, openedFiltered = 0, 0, 0
-    port_list = most_used_ports()
-    for service in port_list:
-        target = IP(dst=args.target)/TCP(flags=flag, dport=service[1])
-        res = sr1(target, timeout=timeout, verbose=0)
-        if res is None:
-            openedFiltered += 1
-            xprint("Port {} {} opened|filtered".format(service[1], service[0]), 2)
-        elif 'TCP' in res:
-            if res['TCP'].flags & TCP_flags.RST:
-                closed += 1
-                xprint("Port {} closed".format(service[1]), 2, 1)
-            else:
-                xprint('autre')
-        elif 'ICMP' in res:
-            if res['ICMP'].type == 3  and res['ICMP'].code in [0, 1, 2, 9, 10, 13]:
-                filtered += 1
-                xprint("Port {} filtered".format(service[1]), 3)
-            else:
-                xprint('autre')
-        else:
-            xprint('autre')
+def udp_scan():
+    xprint("Starting UDP Scan", 3)
+    port_list = most_used_ports('udp')
+    handler=start_thread(port_list=port_list, t='Udp')
+    handler.start()
+    handler.join()
 
-    return closed, filtered, openedFiltered
-
-def ack_scan():
-    xprint("Starting ACK Scan", 3)
-    filtered, unfiltered = 0, 0
-    port_list = most_used_ports()
-    for service in port_list:
-        target = IP(dst=args.target)/TCP(flags='A', dport=service[1])
+class AckThread(threading.Thread):
+    def __init__(self, service, **kwargs):
+        threading.Thread.__init__(self)
+        self.service = service
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+    def run(self):
+        global filtered, unfiltered
+        target = IP(dst=args.target)/TCP(flags='A', dport=self.service[1])
         res = sr1(target, timeout=timeout, verbose=0)
         if res is None:
             filtered += 1
-            xprint("Port {} filtered".format(service[1]), 3)
+            xprint("Port {} filtered".format(self.service[1]), 3)
         elif 'ICMP' in res:
             if res['ICMP'].type == 3  and res['ICMP'].code in [0, 1, 2, 9, 10, 13]:
                 filtered += 1
-                xprint("Port {} filtered".format(service[1]), 3)
+                xprint("Port {} filtered".format(self.service[1]), 3)
             else:
                 xprint('autre')
         elif 'TCP' in res:
             if res['TCP'].flags & TCP_flags.RST:
                 unfiltered += 1
-                xprint("Port {} unfiltered".format(service[1]), 3, 1)
+                xprint("Port {} unfiltered".format(self.service[1]), 3, 1)
         else:
             xprint('autre')
+        pool.release()
 
-    return filtered, unfiltered
+def ack_scan():
+    xprint("Starting ACK Scan", 3)
+    port_list = most_used_ports()
+    handler=start_thread(port_list=port_list, t='Ack')
+    handler.start()
+    handler.join()
 
 def scanflags():
     flag = ''
@@ -326,7 +349,6 @@ def check_ip():
             timeout = 0.1
         else:
             timeout = 0.5
-            
 
 def config():
     arguments()
@@ -341,14 +363,12 @@ def config():
     conf.verb = 0
 
     global opened, closed, filtered, openedFiltered, unfiltered
-    opened, closed, filtered, openedFiltered, unfiltered = 0, 0, 0, 0, 0
+    opened = closed = filtered = openedFiltered = unfiltered = 0
 
-    maxconn=10
+    MAXTHREAD=10
 
     global pool
-    pool=threading.BoundedSemaphore(value=maxconn)
-
-   
+    pool=threading.BoundedSemaphore(value=MAXTHREAD)
 
 def main():
     start_time = datetime.now()
@@ -389,49 +409,49 @@ def main():
 
     xprint("Duration : {}".format(datetime.now() - start_time), 3)
 
-
 if __name__ == '__main__':
     main()
-    #print(most_used_ports('tcp', 10))
 
 
-#TODO:
+"""
+TODO:
 
-#Thread pour lancer plusieurs paquet en même temps
-#https://www.ploggingdev.com/2017/01/multiprocessing-and-multithreading-in-python-3/
-#https://pymotw.com/3/threading/
-#https://www.tutorialspoint.com/python3/python_multithreading.htm
-#http://www.tcpcatcher.org/port_scanner.php
-#https://gist.github.com/presci/2661576
+Thread pour lancer plusieurs paquet en même temps
+https://www.ploggingdev.com/2017/01/multiprocessing-and-multithreading-in-python-3/
+https://pymotw.com/3/threading/
+https://www.tutorialspoint.com/python3/python_multithreading.htm
+http://www.tcpcatcher.org/port_scanner.php
+https://gist.github.com/presci/2661576
 
-#TARGET SPECIFICATION:
+TARGET SPECIFICATION:
 
-#HOST DISCOVERY:
+HOST DISCOVERY:
 
-#SCAN TECHNIQUES:
-# -sY (SCTP INIT scan)
-# -sW (TCP Window scan)
-# -sM (TCP Maimon scan)
-# -sZ (SCTP COOKIE ECHO scan)
-# -sI <zombie host>[:<probeport>] (idle scan)
-# -sO (IP protocol scan)
-# -b <FTP relay host> (FTP bounce scan) 
+SCAN TECHNIQUES:
+ -sY (SCTP INIT scan)
+ -sW (TCP Window scan)
+ -sM (TCP Maimon scan)
+ -sZ (SCTP COOKIE ECHO scan)
+ -sI <zombie host>[:<probeport>] (idle scan)
+ -sO (IP protocol scan)
+ -b <FTP relay host> (FTP bounce scan) 
 
-#PORT SPECIFICATION AND SCAN ORDER:
+PORT SPECIFICATION AND SCAN ORDER:
 
-#SERVICE/VERSION DETECTION:
-# -sV: Probe opened ports to determine service/version info
+SERVICE/VERSION DETECTION:
+ -sV: Probe opened ports to determine service/version info
 
-#SCRIPT SCAN:
+SCRIPT SCAN:
 
-#OS DETECTION:
-# -O: Enable OS detection
+OS DETECTION:
+ -O: Enable OS detection
 
-#TIMING AND PERFORMANCE:
+TIMING AND PERFORMANCE:
 
-#FIREWALL/IDS EVASION AND SPOOFING:
+FIREWALL/IDS EVASION AND SPOOFING:
 
-#OUTPUT:
+OUTPUT:
 
-#MISC:
-# -A: Enable OS detection, version detection, script scanning, and traceroute
+MISC:
+ -A: Enable OS detection, version detection, script scanning, and traceroute
+"""

@@ -142,7 +142,7 @@ def connect_scan_config():
         family = socket.AF_INET
 
     port_list = most_used_ports()
-    
+
     handler = start_thread(port_list=port_list, family=family, t='connect')
     handler.start()
     handler.join()
@@ -378,7 +378,7 @@ def config():
 
     try:
         config.hostip = socket.gethostbyname(args.target)
-    except Exception as e:
+    except Exception:
         exit("Not a correct IP/FQDN.")
     
     check_ip()

@@ -10,11 +10,12 @@ from datetime import datetime
 import threading
 
 def is_tool(name):
-    #Check whether `name` is on PATH and marked as executable.
+    """Check whether `name` is on PATH and marked as executable."""
     from shutil import which
     return which(name) is not None
 
 def xprint(content, design=0, verbosity=0):
+    """Print strings to stdout."""
     begin = ''
     if design == 1:
         begin = colors.success
@@ -28,6 +29,7 @@ def xprint(content, design=0, verbosity=0):
         sys.stdout.flush()
 
 def arguments():
+    """Parse the command line arguments."""
     global args
 
     parser = argparse.ArgumentParser(
@@ -71,6 +73,7 @@ def arguments():
     print(args)
 
 def colors():
+    """Constants for coloring output."""
     colors.red = '\033[1;31m'
     colors.green = '\033[1;32m' 
     colors.blue = '\033[1;34m'
@@ -81,6 +84,7 @@ def colors():
     colors.information = colors.blue + '[*]' + colors.end + ' '
 
 def TCP_flags():
+    """Constants TCP flags value."""
     TCP_flags.FIN = 0x01
     TCP_flags.SYN = 0x02
     TCP_flags.RST = 0x04
@@ -91,6 +95,7 @@ def TCP_flags():
     TCP_flags.CWR = 0x80
 
 class start_thread(threading.Thread):
+    """Start the scan's threads."""
     def __init__(self, **kwargs):
         threading.Thread.__init__(self)
         for key, value in kwargs.items():
@@ -109,10 +114,10 @@ class start_thread(threading.Thread):
             scanport.join()
 
 class connectThread(threading.Thread):
+    """Run the connect scan."""
     def __init__(self, service, **kwargs):
         threading.Thread.__init__(self)
         self.service = service
-        self.family = family
         for key, value in kwargs.items():
             setattr(self, key, value)
     def run(self):
@@ -128,7 +133,8 @@ class connectThread(threading.Thread):
         s.close()
         pool.release()
 
-def connect_scan():
+def connect_scan_config():
+    """Configure parameters for the scan, then call the function to begin the scan."""
     xprint("Starting Connect Scan", 3)
     if args.ipv6:
         family = socket.AF_INET6
@@ -142,6 +148,7 @@ def connect_scan():
     handler.join()
 
 class SynThread(threading.Thread):
+    """Run the SYN scan."""
     def __init__(self, service, **kwargs):
         threading.Thread.__init__(self)
         self.service = service
@@ -176,7 +183,8 @@ class SynThread(threading.Thread):
             xprint('autre')
         pool.release()
 
-def syn_scan(flag):
+def syn_scan_config(flag):
+    """Configure parameters for the scan, then call the function to begin the scan."""
     xprint("Starting SYN Scan", 3)
     port_list = most_used_ports()
     handler = start_thread(port_list=port_list, flag=flag, t='Syn')
@@ -184,6 +192,7 @@ def syn_scan(flag):
     handler.join()
 
 class FinThread(threading.Thread):
+    """Run the FIN scan."""
     def __init__(self, service, **kwargs):
         threading.Thread.__init__(self)
         self.service = service
@@ -212,7 +221,8 @@ class FinThread(threading.Thread):
             xprint('autre')
         pool.release()
 
-def fin_scan(flag):
+def fin_scan_config(flag):
+    """Configure parameters for the scan, then call the function to begin the scan."""
     xprint("Starting FIN Scan", 3)
     port_list = most_used_ports()
     handler=start_thread(port_list=port_list, flag=flag, t='Fin')
@@ -220,6 +230,7 @@ def fin_scan(flag):
     handler.join()
 
 class UdpThread(threading.Thread):
+    """Run the UDP scan."""
     def __init__(self, service, **kwargs):
         threading.Thread.__init__(self)
         self.service = service
@@ -230,7 +241,6 @@ class UdpThread(threading.Thread):
         target = IP(dst=args.target)/UDP(dport=self.service[1])
         res = sr1(target, timeout=timeout, verbose=0)
         if res is None:
-            pass
             openedFiltered += 1
             xprint("Port {} opened|filtered".format(self.service[1]), 2)
         elif 'ICMP' in res:
@@ -250,7 +260,8 @@ class UdpThread(threading.Thread):
             xprint('autre')
         pool.release()
 
-def udp_scan():
+def udp_scan_config():
+    """Configure parameters for the scan, then call the function to begin the scan."""
     xprint("Starting UDP Scan", 3)
     port_list = most_used_ports('udp')
     handler=start_thread(port_list=port_list, t='Udp')
@@ -258,6 +269,7 @@ def udp_scan():
     handler.join()
 
 class AckThread(threading.Thread):
+    """Run the ACK scan."""
     def __init__(self, service, **kwargs):
         threading.Thread.__init__(self)
         self.service = service
@@ -284,7 +296,8 @@ class AckThread(threading.Thread):
             xprint('autre')
         pool.release()
 
-def ack_scan():
+def ack_scan_config():
+    """Configure parameters for the scan, then call the function to begin the scan."""
     xprint("Starting ACK Scan", 3)
     port_list = most_used_ports()
     handler=start_thread(port_list=port_list, t='Ack')
@@ -292,6 +305,7 @@ def ack_scan():
     handler.join()
 
 def scanflags():
+    """Return the flags desired from the command line argument --scanflags."""
     flag = ''
     if 'FIN' in args.scanflags:
         flag += 'F'
@@ -312,9 +326,11 @@ def scanflags():
     return flag
 
 def getFreq(item):
+    """Return the open's frequence of the desired service."""
     return item[3]
 
 def most_used_ports(proto='tcp'):
+    """Parse the nmap's service file and Return the most used ports."""
     #TODO: add random options
     with open('/usr/share/nmap/nmap-services', 'r') as f:
         D = []
@@ -336,10 +352,11 @@ def most_used_ports(proto='tcp'):
             return D[:args.top_ports]
 
 def check_ip():
+    """Look the ip from -t argument and Set the timeout for the scan weither it's a public or a private ip."""
     #TODO: ipv6
     #TODO: gestion of urls
     global timeout
-    ip = args.target
+    ip = config.hostip
 
     if args.ipv6:
         pass
@@ -351,8 +368,10 @@ def check_ip():
             timeout = 0.5
 
 def config():
+    """Set various variables."""
     arguments()
 
+    """Nmap is required to use this script."""
     if not is_tool('nmap'):
         xprint('Nmap is required to use this script', 2)
         exit()
@@ -360,37 +379,38 @@ def config():
     colors()
     TCP_flags()
     check_ip()
-    conf.verb = 0
+    conf.verb = 0 #Disable verbosity output from scapy
 
     global opened, closed, filtered, openedFiltered, unfiltered
     opened = closed = filtered = openedFiltered = unfiltered = 0
 
-    MAXTHREAD=10
+    MAXTHREAD = 10
 
     global pool
     pool=threading.BoundedSemaphore(value=MAXTHREAD)
+
+    hostip = socket.gethostbyname(args.target)
 
 def main():
     start_time = datetime.now()
     config()
 
-    hostip = socket.gethostbyname(args.target)
-    xprint("Scan for {} with IP: {}".format(args.target, hostip), 3)
+    xprint("Scan for {} with IP: {}".format(args.target, config.hostip), 3)
 
     if args.sC:
-        connect_scan()
+        connect_scan_config()
     elif args.sU:
-        udp_scan()
+        udp_scan_config()
     elif args.sS:
-        syn_scan('S')
+        syn_scan_config('S')
     elif args.sF:
-        fin_scan('F')
+        fin_scan_config('F')
     elif args.sN:
-        fin_scan('')
+        fin_scan_config('')
     elif args.sX:
-        fin_scan('FPU')
+        fin_scan_config('FPU')
     elif args.sA:
-        ack_scan()
+        ack_scan_config()
     elif args.scanflags:
         flag = scanflags()
         xprint("Starting scan with flag : {}".format(flag), 3)
@@ -415,6 +435,10 @@ if __name__ == '__main__':
 
 """
 TODO:
+
+1/ ping scan
+2/ service scan ?
+3/ os detection, mac address finding
 
 Thread pour lancer plusieurs paquet en même temps
 https://www.ploggingdev.com/2017/01/multiprocessing-and-multithreading-in-python-3/

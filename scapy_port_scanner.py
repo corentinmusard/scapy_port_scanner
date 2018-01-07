@@ -371,14 +371,21 @@ def config():
     """Set various variables."""
     arguments()
 
-    """Nmap is required to use this script."""
+    #Nmap is required to use this script
     if not is_tool('nmap'):
         xprint('Nmap is required to use this script', 2)
         exit()
 
+    try:
+        config.hostip = socket.gethostbyname(args.target)
+    except Exception as e:
+        exit("Not a correct IP/FQDN.")
+    
+    check_ip()
+
     colors()
     TCP_flags()
-    check_ip()
+    
     conf.verb = 0 #Disable verbosity output from scapy
 
     global opened, closed, filtered, openedFiltered, unfiltered
@@ -389,7 +396,6 @@ def config():
     global pool
     pool=threading.BoundedSemaphore(value=MAXTHREAD)
 
-    hostip = socket.gethostbyname(args.target)
 
 def main():
     start_time = datetime.now()

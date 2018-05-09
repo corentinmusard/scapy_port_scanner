@@ -8,11 +8,11 @@
 
 ## Requirements
 
-python3
-scapy
-nmap
+> python3
+> scapy
+> nmap
 
-```bash
+```sh
 python3 -m pip install --user scapy
 sudo apt-get install nmap
 ```

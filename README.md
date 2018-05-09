@@ -1,10 +1,10 @@
 # scapy_port_scanner
 
 ## Command line options
-![help page](https://github.com/corentinmusard/scapy_port_scanner/img/help.png "help page")
+![help page](https://github.com/corentinmusard/scapy_port_scanner/blob/master/img/help.png "help page")
 
 ## Sample Usage
-![sample](https://github.com/corentinmusard/scapy_port_scanner/img/sample.png "sample")
+![sample](https://github.com/corentinmusard/scapy_port_scanner/blob/master/img/sample.png "sample")
 
 ## Requirements
 

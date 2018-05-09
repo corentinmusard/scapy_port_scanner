@@ -9,10 +9,12 @@ import time
 from datetime import datetime
 import threading
 
+
 def is_tool(name):
     """Check whether `name` is on PATH and marked as executable."""
     from shutil import which
     return which(name) is not None
+
 
 def xprint(content, design=0, verbosity=0):
     """Print strings to stdout."""
@@ -28,24 +30,29 @@ def xprint(content, design=0, verbosity=0):
         sys.stdout.write(begin + content + '\n')
         sys.stdout.flush()
 
+
 def arguments():
     """Parse the command line arguments."""
     global args
 
     parser = argparse.ArgumentParser(
-    prog='scapy_port_scanner.py', description='Port scanner',
-    epilog='/!\ Nmap and scapy are required to use this script')
+        prog='scapy_port_scanner.py', description='Port scanner',
+        epilog='/!\\ Nmap and scapy are required to use this script')
 
     parser.add_argument(
-        '-t', '--target', type=str, metavar='target', default='localhost', help='The target to scan')
+        '-t', '--target', type=str, metavar='target', default='localhost',
+        help='The target to scan')
     parser.add_argument(
         '-v6', '--ipv6', action='store_true', help='Use IPv6 address')
     parser.add_argument(
-        '-v', '--verbosity', action='count', default=0, help='The verbosity level, use -vv or more')
+        '-v', '--verbosity', action='count', default=0,
+        help='The verbosity level, use -vv or more')
     parser.add_argument(
-        '--top-ports', type=int, metavar='N', default='1000', help='The N most common port to scan')
+        '--top-ports', type=int, metavar='N', default='1000',
+        help='The N most common port to scan')
     parser.add_argument(
-        '-p-', dest='all_ports', action='store_true', help='Scan all ports (65535 ports)')
+        '-p-', dest='all_ports', action='store_true',
+        help='Scan all ports (65535 ports)')
     parser.add_argument(
         '--version', action='version', version='%(prog)s v0.1')
 
@@ -72,16 +79,18 @@ def arguments():
 
     print(args)
 
+
 def colors():
     """Constants for coloring output."""
     colors.red = '\033[1;31m'
-    colors.green = '\033[1;32m' 
+    colors.green = '\033[1;32m'
     colors.blue = '\033[1;34m'
     colors.end = '\033[0m'
 
     colors.success = colors.green + '[+]' + colors.end + ' '
     colors.failure = colors.red + '[-]' + colors.end + ' '
     colors.information = colors.blue + '[*]' + colors.end + ' '
+
 
 def TCP_flags():
     """Constants TCP flags value."""
@@ -94,12 +103,14 @@ def TCP_flags():
     TCP_flags.ECE = 0x40
     TCP_flags.CWR = 0x80
 
+
 class start_thread(threading.Thread):
     """Start the scan's threads."""
     def __init__(self, **kwargs):
         threading.Thread.__init__(self)
         for key, value in kwargs.items():
             setattr(self, key, value)
+
     def run(self):
         if not hasattr(self, 'family'):
             self.family = ''
@@ -113,6 +124,7 @@ class start_thread(threading.Thread):
             scanport.start()
             scanport.join()
 
+
 class connectThread(threading.Thread):
     """Run the connect scan."""
     def __init__(self, service, **kwargs):
@@ -120,6 +132,7 @@ class connectThread(threading.Thread):
         self.service = service
         for key, value in kwargs.items():
             setattr(self, key, value)
+
     def run(self):
         global opened, closed
         s = socket.socket(self.family, socket.SOCK_STREAM)
@@ -132,6 +145,7 @@ class connectThread(threading.Thread):
             closed += 1
         s.close()
         pool.release()
+
 
 def connect_scan_config():
     """Configure parameters for the scan, then call the function to begin the scan."""
@@ -147,6 +161,7 @@ def connect_scan_config():
     handler.start()
     handler.join()
 
+
 class SynThread(threading.Thread):
     """Run the SYN scan."""
     def __init__(self, service, **kwargs):
@@ -154,6 +169,7 @@ class SynThread(threading.Thread):
         self.service = service
         for key, value in kwargs.items():
             setattr(self, key, value)
+
     def run(self):
         global opened, closed, filtered
         target = IP(dst=args.target)/TCP(flags=self.flag, dport=self.service[1])
@@ -161,7 +177,7 @@ class SynThread(threading.Thread):
         if res is None:
             filtered += 1
             xprint("Port {} filtered".format(self.service[1]), 3, 1)
-        elif 'ICMP' in res :
+        elif 'ICMP' in res:
             if res['ICMP'].type == 3 and res['ICMP'].code in [0, 1, 2, 9, 10, 13]:
                 filtered += 1
                 xprint("Port {} filtered".format(self.service[1]), 3)
@@ -183,6 +199,7 @@ class SynThread(threading.Thread):
             xprint('autre')
         pool.release()
 
+
 def syn_scan_config(flag):
     """Configure parameters for the scan, then call the function to begin the scan."""
     xprint("Starting SYN Scan", 3)
@@ -191,6 +208,7 @@ def syn_scan_config(flag):
     handler.start()
     handler.join()
 
+
 class FinThread(threading.Thread):
     """Run the FIN scan."""
     def __init__(self, service, **kwargs):
@@ -198,6 +216,7 @@ class FinThread(threading.Thread):
         self.service = service
         for key, value in kwargs.items():
             setattr(self, key, value)
+
     def run(self):
         global closed, filtered, openedFiltered
         target = IP(dst=args.target)/TCP(flags=self.flag, dport=self.service[1])
@@ -212,7 +231,7 @@ class FinThread(threading.Thread):
             else:
                 xprint('autre')
         elif 'ICMP' in res:
-            if res['ICMP'].type == 3  and res['ICMP'].code in [0, 1, 2, 9, 10, 13]:
+            if res['ICMP'].type == 3 and res['ICMP'].code in [0, 1, 2, 9, 10, 13]:
                 filtered += 1
                 xprint("Port {} filtered".format(self.service[1]), 3)
             else:
@@ -221,13 +240,15 @@ class FinThread(threading.Thread):
             xprint('autre')
         pool.release()
 
+
 def fin_scan_config(flag):
     """Configure parameters for the scan, then call the function to begin the scan."""
     xprint("Starting FIN Scan", 3)
     port_list = most_used_ports()
-    handler=start_thread(port_list=port_list, flag=flag, t='Fin')
+    handler = start_thread(port_list=port_list, flag=flag, t='Fin')
     handler.start()
     handler.join()
+
 
 class UdpThread(threading.Thread):
     """Run the UDP scan."""
@@ -236,6 +257,7 @@ class UdpThread(threading.Thread):
         self.service = service
         for key, value in kwargs.items():
             setattr(self, key, value)
+
     def run(self):
         global opened, closed, filtered, openedFiltered
         target = IP(dst=args.target)/UDP(dport=self.service[1])
@@ -260,13 +282,15 @@ class UdpThread(threading.Thread):
             xprint('autre')
         pool.release()
 
+
 def udp_scan_config():
     """Configure parameters for the scan, then call the function to begin the scan."""
     xprint("Starting UDP Scan", 3)
     port_list = most_used_ports('udp')
-    handler=start_thread(port_list=port_list, t='Udp')
+    handler = start_thread(port_list=port_list, t='Udp')
     handler.start()
     handler.join()
+
 
 class AckThread(threading.Thread):
     """Run the ACK scan."""
@@ -275,6 +299,7 @@ class AckThread(threading.Thread):
         self.service = service
         for key, value in kwargs.items():
             setattr(self, key, value)
+
     def run(self):
         global filtered, unfiltered
         target = IP(dst=args.target)/TCP(flags='A', dport=self.service[1])
@@ -283,7 +308,7 @@ class AckThread(threading.Thread):
             filtered += 1
             xprint("Port {} filtered".format(self.service[1]), 3)
         elif 'ICMP' in res:
-            if res['ICMP'].type == 3  and res['ICMP'].code in [0, 1, 2, 9, 10, 13]:
+            if res['ICMP'].type == 3 and res['ICMP'].code in [0, 1, 2, 9, 10, 13]:
                 filtered += 1
                 xprint("Port {} filtered".format(self.service[1]), 3)
             else:
@@ -296,13 +321,15 @@ class AckThread(threading.Thread):
             xprint('autre')
         pool.release()
 
+
 def ack_scan_config():
     """Configure parameters for the scan, then call the function to begin the scan."""
     xprint("Starting ACK Scan", 3)
     port_list = most_used_ports()
-    handler=start_thread(port_list=port_list, t='Ack')
+    handler = start_thread(port_list=port_list, t='Ack')
     handler.start()
     handler.join()
+
 
 def scanflags():
     """Return the flags desired from the command line argument --scanflags."""
@@ -325,13 +352,15 @@ def scanflags():
         flag += 'C'
     return flag
 
+
 def getFreq(item):
     """Return the open's frequence of the desired service."""
     return item[3]
 
+
 def most_used_ports(proto='tcp'):
     """Parse the nmap's service file and Return the most used ports."""
-    #TODO: add random options
+    # TODO: add random options
     with open('/usr/share/nmap/nmap-services', 'r') as f:
         D = []
         for line in f:
@@ -340,9 +369,9 @@ def most_used_ports(proto='tcp'):
 
             protocol = line.split()[1].split('/')[1]
             if protocol == proto:
-                name     = line.split()[0]
-                port     = line.split()[1].split('/')[0]
-                freq     = line.split()[2]
+                name = line.split()[0]
+                port = line.split()[1].split('/')[0]
+                freq = line.split()[2]
                 D.append([name, int(port), protocol, freq])
 
         D = sorted(D, key=getFreq, reverse=True)
@@ -351,10 +380,11 @@ def most_used_ports(proto='tcp'):
         else:
             return D[:args.top_ports]
 
+
 def check_ip():
     """Look the ip from -t argument and Set the timeout for the scan weither it's a public or a private ip."""
-    #TODO: ipv6
-    #TODO: gestion of urls
+    # TODO: ipv6
+    # TODO: gestion of urls
     global timeout
     ip = config.hostip
 
@@ -367,11 +397,12 @@ def check_ip():
         else:
             timeout = 0.5
 
+
 def config():
     """Set various variables."""
     arguments()
 
-    #Nmap is required to use this script
+    # Nmap is required to use this script
     if not is_tool('nmap'):
         xprint('Nmap is required to use this script', 2)
         exit()
@@ -380,13 +411,13 @@ def config():
         config.hostip = socket.gethostbyname(args.target)
     except Exception:
         exit("Not a correct IP/FQDN.")
-    
+
     check_ip()
 
     colors()
     TCP_flags()
-    
-    conf.verb = 0 #Disable verbosity output from scapy
+
+    conf.verb = 0  # Disable verbosity output from scapy
 
     global opened, closed, filtered, openedFiltered, unfiltered
     opened = closed = filtered = openedFiltered = unfiltered = 0
@@ -394,7 +425,7 @@ def config():
     MAXTHREAD = 10
 
     global pool
-    pool=threading.BoundedSemaphore(value=MAXTHREAD)
+    pool = threading.BoundedSemaphore(value=MAXTHREAD)
 
 
 def main():
@@ -435,53 +466,6 @@ def main():
 
     xprint("Duration : {}".format(datetime.now() - start_time), 3)
 
+
 if __name__ == '__main__':
     main()
-
-
-"""
-TODO:
-
-1/ ping scan
-2/ service scan ?
-3/ os detection, mac address finding
-
-Thread pour lancer plusieurs paquet en même temps
-https://www.ploggingdev.com/2017/01/multiprocessing-and-multithreading-in-python-3/
-https://pymotw.com/3/threading/
-https://www.tutorialspoint.com/python3/python_multithreading.htm
-http://www.tcpcatcher.org/port_scanner.php
-https://gist.github.com/presci/2661576
-
-TARGET SPECIFICATION:
-
-HOST DISCOVERY:
-
-SCAN TECHNIQUES:
- -sY (SCTP INIT scan)
- -sW (TCP Window scan)
- -sM (TCP Maimon scan)
- -sZ (SCTP COOKIE ECHO scan)
- -sI <zombie host>[:<probeport>] (idle scan)
- -sO (IP protocol scan)
- -b <FTP relay host> (FTP bounce scan) 
-
-PORT SPECIFICATION AND SCAN ORDER:
-
-SERVICE/VERSION DETECTION:
- -sV: Probe opened ports to determine service/version info
-
-SCRIPT SCAN:
-
-OS DETECTION:
- -O: Enable OS detection
-
-TIMING AND PERFORMANCE:
-
-FIREWALL/IDS EVASION AND SPOOFING:
-
-OUTPUT:
-
-MISC:
- -A: Enable OS detection, version detection, script scanning, and traceroute
-"""

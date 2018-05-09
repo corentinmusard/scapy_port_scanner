@@ -12,5 +12,7 @@ python3
 scapy
 nmap
 
+```bash
 python3 -m pip install --user scapy
 sudo apt-get install nmap
+```

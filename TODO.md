@@ -8,6 +8,8 @@
 - [ ] IPv6 support
 - [ ] become pep8 compliant
 - [ ] make tests
+- [ ] make docs/wiki
+- [ ] fixe all FIXME and TODO in code
 
 
 ## Some documentation:

@@ -1,5 +1,8 @@
 # scapy_port_scanner
 
+## Build status
+[![Build Status](https://www.travis-ci.org/corentinmusard/scapy_port_scanner.svg?branch=master)](https://www.travis-ci.org/corentinmusard/scapy_port_scanner)
+
 ## Command line options
 ![help page](https://github.com/corentinmusard/scapy_port_scanner/blob/master/img/help.png "help page")
 

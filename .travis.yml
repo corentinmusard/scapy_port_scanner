@@ -1,2 +1,19 @@
 language: python
 sudo: false
+
+python:
+  - "3.3"
+  - "3.4"
+  - "3.5"
+  - "3.6"
+  - "3.7"
+  - "3.8"
+
+# command to install dependencies
+install:
+  - pip install --user -r requirements.txt
+  - sudo apt-get install nmap
+
+# command to run tests
+script:
+  - pytest # or py.test for Python versions 3.5 and below

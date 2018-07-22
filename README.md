@@ -1,7 +1,6 @@
 # scapy_port_scanner
 [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://lbesson.mit-license.org/)
-[![Package Control total downloads](https://img.shields.io/packagecontrol/dt/SwitchDictionary.svg)](https://packagecontrol.io/packages/SwitchDictionary)
-[![Package Control month downloads](https://img.shields.io/packagecontrol/dm/SwitchDictionary.svg)](https://packagecontrol.io/packages/SwitchDictionary)
+[![HitCount](http://hits.dwyl.io/corentinmusard/scapy_port_scaner.svg)](http://hits.dwyl.io/corentinmusard/scapy_port_scaner)
 
 ## Build status
 [![Build Status](https://www.travis-ci.org/corentinmusard/scapy_port_scanner.svg?branch=master)](https://www.travis-ci.org/corentinmusard/scapy_port_scanner)
@@ -17,11 +16,11 @@
 
 ## Requirements
 
-> python3
-> scapy
-> nmap
+- python (version 3.x.x minimum) (FIXME)
+- scapy
+- nmap
 
 ```sh
-python3 -m pip install --user scapy
+sudo python -m pip install scapy
 sudo apt-get install nmap
 ```

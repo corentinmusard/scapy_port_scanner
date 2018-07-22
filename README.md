@@ -1,4 +1,7 @@
 # scapy_port_scanner
+[![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://lbesson.mit-license.org/)
+[![Package Control total downloads](https://img.shields.io/packagecontrol/dt/SwitchDictionary.svg)](https://packagecontrol.io/packages/SwitchDictionary)
+[![Package Control month downloads](https://img.shields.io/packagecontrol/dm/SwitchDictionary.svg)](https://packagecontrol.io/packages/SwitchDictionary)
 
 ## Build status
 [![Build Status](https://www.travis-ci.org/corentinmusard/scapy_port_scanner.svg?branch=master)](https://www.travis-ci.org/corentinmusard/scapy_port_scanner)

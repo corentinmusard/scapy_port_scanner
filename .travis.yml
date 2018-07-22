@@ -2,9 +2,12 @@ language: python
 sudo: false
 
 python:
+  - "3.4"
+  - "3.5"
   - "3.6"
-  - "3.7"
-  - "3.8"
+  - "3.7-dev"  # 3.7 development branch
+  # - "3.7" not possible now
+  #- "3.8" not possible now
 
 # command to install dependencies
 install:

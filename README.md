@@ -7,6 +7,7 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/f078b44da1da4ad4a5bba8dda8fe46c5)](https://www.codacy.com/app/corentinmusard/scapy_port_scanner?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=corentinmusard/scapy_port_scanner&amp;utm_campaign=Badge_Grade)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/corentinmusard/scapy_port_scanner/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/corentinmusard/scapy_port_scanner/?branch=master)
 [![Coverage Status](https://coveralls.io/repos/github/corentinmusard/scapy_port_scanner/badge.svg?branch=master)](https://coveralls.io/github/corentinmusard/scapy_port_scanner?branch=master)
+[![Maintainability](https://api.codeclimate.com/v1/badges/b115c1a9c3e3328cf07d/maintainability)](https://codeclimate.com/github/corentinmusard/scapy_port_scanner/maintainability)
 
 ## Command line options
 ![help page](https://github.com/corentinmusard/scapy_port_scanner/blob/master/img/help.png "help page")

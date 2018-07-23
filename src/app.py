@@ -4,10 +4,6 @@
 
 # TODO: faire de ce fichier un namespace
 
-try:
-    from __future__ import annotations
-except ImportError:
-    pass
 
 from typing import List, Any, Dict, Iterator
 import sys

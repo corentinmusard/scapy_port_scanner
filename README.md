@@ -17,7 +17,7 @@
 
 ## Requirements
 
-- python (version 3.x.x minimum) (FIXME)
+- python (version 3.6 minimum)
 - scapy
 - nmap
 

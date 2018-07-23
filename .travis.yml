@@ -2,13 +2,9 @@ language: python
 sudo: false
 
 python:
-  - "2.6"
-  - "2.7"
-  - "3.4"
-  - "3.5"
   - "3.6"
   - "3.7-dev"  # 3.7 development branch
-  # - "3.7" not possible now
+  #- "3.7" not possible now
   #- "3.8" not possible now
 
 # command to install dependencies
@@ -22,4 +18,4 @@ script:
   - pytest # or py.test for Python versions 3.5 and below
 
 after_success:
-  - coveralls # Upload reports to coveralls.io
+- coveralls # Upload reports to coveralls.io

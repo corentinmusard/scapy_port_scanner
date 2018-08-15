@@ -1,4 +1,6 @@
 [report]
 omit =
     */python?.?/*
-*__init__*
+    *__init__*
+    test*.py
+    */tests*

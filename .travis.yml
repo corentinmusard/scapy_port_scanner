@@ -15,7 +15,8 @@ install:
 
 # command to run tests
 script:
-  - pytest # or py.test for Python versions 3.5 and below
+#  - pytest # or py.test for Python versions 3.5 and below
+  - pytest --doctest-modules --pep8 -v --cov src --cov-report term-missing
 
 after_success:
 - coveralls # Upload reports to coveralls.io

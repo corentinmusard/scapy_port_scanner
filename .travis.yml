@@ -17,6 +17,8 @@ install:
 script:
 #  - pytest # or py.test for Python versions 3.5 and below
   - pytest --doctest-modules -v --cov src --cov-report term-missing
+  - coverage run test
 
 after_success:
-- coveralls # Upload reports to coveralls.io
+  - coveralls # Upload reports to coveralls.io
+  - codecov

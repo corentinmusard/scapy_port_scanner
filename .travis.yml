@@ -20,5 +20,5 @@ script:
   - coverage run test
 
 after_success:
-  - coveralls # Upload reports to coveralls.io
+#  - coveralls # Upload reports to coveralls.io
   - codecov

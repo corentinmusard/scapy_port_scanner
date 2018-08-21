@@ -15,7 +15,7 @@ In no specific order
 - [ ] fixe all FIXME and TODO in code
 - [ ] make function docstring
 - [ ] refactor all the code with OOP
-- make root warning for all scan except connect scan
+- raise PermissionError (root permission) for all scan except connect scan
 - supprimer le init() des scans avec un moyen plus correct
 
 
@@ -61,5 +61,3 @@ OUTPUT:
 
 MISC:
 * -A: Enable OS detection, version detection, script scanning, and traceroute
-
-(test)

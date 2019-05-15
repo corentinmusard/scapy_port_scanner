@@ -1,4 +1,7 @@
 # scapy_port_scanner
+
+### /!\ Project is not maintained anymore. It contains bugs and undefined behaviours. Use it carefully. /!\
+
 [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://lbesson.mit-license.org/)
 [![HitCount](http://hits.dwyl.io/corentinmusard/scapy_port_scaner.svg)](http://hits.dwyl.io/corentinmusard/scapy_port_scaner)
 

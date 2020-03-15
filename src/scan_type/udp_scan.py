@@ -18,6 +18,8 @@ class UdpScan(threading.Thread):
 
         super(UdpScan, self).__init__()
 
+        # self.port_list = app.most_used_ports('udp', self.args.top_ports)
+
         self.pool = pool
         self.service = service
 
@@ -35,15 +37,15 @@ class UdpScan(threading.Thread):
         res = sr1(target, timeout=app.timeout, verbose=0)
         if res is None:
             app.results['openedFiltered'] += 1
-            app.xprint(f'Port {self.service[1]} opened|filtered', 1, app.FAILURE)
+            app.xprint(f'Port {self.service[1]} opened|filtered', app.FAILURE, 1, self.scan.verbosity)
         elif 'ICMP' in res:
             if res['ICMP'].type == 3 and res['ICMP'].code == 3:
                 app.results['closed'] += 1
-                app.xprint(f'Port {self.service[1]} closed', 2, app.SUCCESS)
+                app.xprint(f'Port {self.service[1]} closed', app.SUCCESS, 2, self.scan.verbosity)
                 time.sleep(0.9)
             elif res['ICMP'].type == 3 and res['ICMP'].code in [0, 1, 2, 9, 10, 13]:
                 app.results['filtered'] += 1
-                app.xprint(f'Port {self.service[1]} filtered', 1, app.INFORMATION)
+                app.xprint(f'Port {self.service[1]} filtered', app.INFORMATION, 1, self.scan.verbosity)
             else:
                 app.xprint('error #7')
         elif 'UDP' in res:

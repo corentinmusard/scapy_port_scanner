@@ -1,7 +1,4 @@
-# from .scan_type import *
-
 from .scan import Scan
+from .scan_finder import ScanFinder
 
 from . import app
-
-from .config import config

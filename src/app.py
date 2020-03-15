@@ -4,27 +4,18 @@
 
 # TODO: faire de ce fichier un namespace
 
-
-from typing import List, Any, Dict, Iterator
+from typing import List, Iterator
 import sys
-import argparse
-from datetime import datetime
 
-from .tcp import TCP
-from .ip import IP
-
-results: Dict[str, Any] = {}
-timeout: float = 1.0
-args: argparse.Namespace = argparse.Namespace()
-ipv6: bool = False
-flag: str = ''
+# results: Dict[str, Any] = {}
 
 SUCCESS = 1
 FAILURE = 2
 INFORMATION = 3
 
 
-def xprint(content: str = '', design: int = INFORMATION, verbosity: int = 0) -> None:
+def xprint(content: str = '', design: int = INFORMATION,
+           verbosity: int = 0, current_verbosity: int = 0) -> None:
     """Print strings to stdout."""
     begin = ''
     if design == 1:
@@ -34,7 +25,7 @@ def xprint(content: str = '', design: int = INFORMATION, verbosity: int = 0) -> 
     elif design == 3:
         begin = Colors.information
 
-    if args.verbosity >= verbosity:
+    if current_verbosity >= verbosity:
         sys.stdout.write(begin + content + '\n')
         sys.stdout.flush()
 
@@ -71,7 +62,7 @@ def most_used_ports(proto: str = 'tcp', nbports: int = None) -> Iterator[List]:
     # TODO: add random options
     # TODO: remove the nmap's dependences
     # TODO: make the function os agnostic
-    # TODO: maybe be use re instead of split
+    # TODO: maybe use re instead of split
     with open('/usr/share/nmap/nmap-services', 'r') as file:
         service_list = []
         for line in file:
@@ -91,14 +82,3 @@ def most_used_ports(proto: str = 'tcp', nbports: int = None) -> Iterator[List]:
             return (service for service in service_list)
 
         return (service for service in service_list[:nbports])
-
-
-def end(start_time: datetime = None) -> None:
-    """"""
-
-    for key in results:
-        if key is not None:
-            xprint(f'{results[key]} ports {key}', INFORMATION)
-
-    if start_time is not None:
-        xprint(f'Duration : {datetime.now() - start_time}', INFORMATION)

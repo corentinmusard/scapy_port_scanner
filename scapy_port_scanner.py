@@ -3,24 +3,27 @@
     A module docstring.
 """
 
-from datetime import datetime
-
-from src import *
+from src import ScanFinder
 
 
 def main() -> None:
     """Main function of scapy_port_scanner"""
-    start_time = datetime.now()
+    scan_finder = ScanFinder()
+    scan_name = scan_finder.find_type()
 
-    (port_list, hostip, scan_type) = config()
+    if scan_name is None:
+        print('Scan\'s name not found.')
+        exit()
 
-    app.xprint(f'Scan for {app.args.target} with IP {hostip}', app.INFORMATION)
+    scan = scan_finder.get_scan(scan_name)
 
-    scan = Scan(scan_type, port_list)
+    if scan is None:
+        print('Scan not found.')
+        exit()
+
     scan.start()  # Start the scan with thread
     scan.join()  # Wait the end of all thread
-
-    app.end(start_time)
+    scan.info()  # Print some info about the scan
 
 
 if __name__ == '__main__':

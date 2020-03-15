@@ -42,7 +42,7 @@ class AckScan(threading.Thread):
         elif 'TCP' in res:
             if res['TCP'].flags & app.TCP.RST:
                 app.results['unfiltered'] += 1
-                app.xprint(f'Port {self.service[1]} unfiltered', 3, app.SUCCESS)
+                app.xprint(f'Port {self.service[1]} unfiltered', app.SUCCESS, 3, self.scan.verbosity)
         else:
             app.xprint('error #10')
 

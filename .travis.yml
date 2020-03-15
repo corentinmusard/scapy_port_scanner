@@ -1,16 +1,28 @@
+# https://config.travis-ci.com/explore
+
 language: python
-sudo: false
+
+addons:
+  sonarcloud:
+    organization: "corentinmusard"
+    token:
+      secure: "wBY+yjVkmiXr02DLt+we8Zsm33pSSUyP7eSXmrq6/A71euU1FOWwajDclJM3slH3deebxw8QH16PeBKKhL2UF9E5y5d9H5VeHIa1eqvwMos7lOlom3FI0C3ESJOYz92uMqzhm3LNcWE4+fOR55itTjPeMfAzPZRaJgDRJFdfiSAOJkRsv0ZOH61Aayn7kc7mU5g9SmuePWawYf2DeDmD1IRNG3WLHJfhWy6aqrhvsexdOJzyorRkKeHh/3+WiUTXSvyQ9HGrmwZ5zfh4/+rUddJ/0p3hqNVA8FRsuGIf4AO+dznDYZOmgZPT8kGE3NuoxHuH8wF7JQd0O8WdfDAKDqhvd0KIKJE9ZulycvZGd9a1ehin+VNwEKIHI7n56EfazyqFaXlXl8tyEGjyVkrnZV1Tm39wgPk+bFBR08Bw49/l4dF+kPubjVnnHc2ij/1+Qt3NeCeqCRhA8kp6KvcxPnyl5iYoqbh+O79jj9qwzL3vQ5JEEALnHGvPtsKAymeX7EfHa2IykQiVGpxsMuqIMrriCHlCZ5t004Xy+vfG5zLSUgLCJIBwCJhn2xRUtFvHbpfYVQBYunQ5yYHb6dNlMNA4T/I3ABgpnCUxTpOfP+n0WImnSU6dLNyMCGP5G77q6qKcDcUypg77tZAZSatWfKBJxH7r5n6aAgpEKSCvJo0="
+  apt:
+    packages: # Install needed packages
+      - nmap
 
 python:
   - "3.6"
-  - "3.7-dev"  # 3.7 development branch
-  #- "3.7" not possible now
-  #- "3.8" not possible now
+  - "3.7"
+  - "3.8"
+  #- "3.9" not possible now
+
+os:
+  - linux
 
 # command to install dependencies
 install:
   - pip install -r requirements.txt
-  - sudo apt-get install nmap
 
 # command to run tests
 script:

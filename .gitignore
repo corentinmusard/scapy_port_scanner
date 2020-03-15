@@ -1,7 +1,18 @@
+# Editor files
+*.sublime-workspace
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
+
+# venv files
+bin/*
+lib/*
+lib64
+share/*
+pyvenv.cfg
+pip-selfcheck.json
 
 # C extensions
 *.so

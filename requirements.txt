@@ -1,4 +1,4 @@
-scapy
+scapy>=2.4.3
 pytest
 pytest-pep8
 pytest-cov

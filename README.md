@@ -21,11 +21,15 @@
 
 ## Requirements
 
-- python (version 3.6 minimum)
+- python (version >= 3.6)
+- venv
 - scapy
 - nmap
 
 ```sh
-sudo python -m pip install scapy
 sudo apt-get install nmap
+python -m pip install venv
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
 ```

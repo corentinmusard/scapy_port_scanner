@@ -7,12 +7,7 @@ __pycache__/
 *$py.class
 
 # venv files
-bin/*
-lib/*
-lib64
-share/*
-pyvenv.cfg
-pip-selfcheck.json
+venv/*
 
 # C extensions
 *.so

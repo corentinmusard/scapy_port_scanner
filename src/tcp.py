@@ -1,5 +1,5 @@
 """
-    A module docstring.
+    TCP layer
 """
 
 
@@ -17,12 +17,9 @@ class TCP:
     ECE = 0x40
     CWR = 0x80
 
-    def __init__(self) -> None:
-        pass
-
     @staticmethod
     def scanflags(flags: str) -> str:
-        """Parse a string and return the TCP flag in this string."""
+        """Parse a string and return every TCP flag in this string."""
         flag = ''
         if 'FIN' in flags:
             flag += 'F'

@@ -1,4 +1,7 @@
 # scapy_port_scanner
+
+### /!\ Project is not maintained anymore. It contains bugs and undefined behaviours. Use it carefully. /!\
+
 [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://lbesson.mit-license.org/)
 [![HitCount](http://hits.dwyl.io/corentinmusard/scapy_port_scaner.svg)](http://hits.dwyl.io/corentinmusard/scapy_port_scaner)
 
@@ -8,6 +11,7 @@
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/corentinmusard/scapy_port_scanner/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/corentinmusard/scapy_port_scanner/?branch=master)
 [![codecov](https://codecov.io/gh/corentinmusard/scapy_port_scanner/branch/master/graph/badge.svg)](https://codecov.io/gh/corentinmusard/scapy_port_scanner)
 [![Maintainability](https://api.codeclimate.com/v1/badges/b115c1a9c3e3328cf07d/maintainability)](https://codeclimate.com/github/corentinmusard/scapy_port_scanner/maintainability)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=corentinmusard_scapy_port_scanner&metric=alert_status)](https://sonarcloud.io/dashboard?id=corentinmusard_scapy_port_scanner)
 
 ## Command line options
 ![help page](https://github.com/corentinmusard/scapy_port_scanner/blob/master/img/help.png "help page")

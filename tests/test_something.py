@@ -12,4 +12,4 @@ class TestBot(unittest.TestCase):
 
     def test_something(self):
         """Random test for test tests."""
-        self.assertEqual(app.TCP.FIN, 0x1)
+        self.assertEqual(0x1, 0x1)

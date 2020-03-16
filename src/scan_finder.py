@@ -6,7 +6,7 @@ from typing import Optional
 import argparse
 
 from .config import arguments
-from . import app
+from . import log
 from .scan_type import *
 from .scan import Scan
 
@@ -39,7 +39,7 @@ class ScanFinder:
         elif self.args.scanflags:
             scan_name = 'syn'
         else:
-            app.xprint('No scan type choosed, try --help for more information.')
+            log.log('No scan type choosed, try --help for more information.')
             return None
 
         return scan_name

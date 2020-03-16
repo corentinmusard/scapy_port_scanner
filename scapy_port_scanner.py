@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-    A module docstring.
+    scapy_port_scanner.py
 """
 
 from src import ScanFinder

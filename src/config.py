@@ -25,8 +25,6 @@ def arguments() -> argparse.Namespace:
         help='Scan all ports (only the most common from the nmap list not 65535 ports)')
     parser.add_argument(
         '--version', action='version', version='%(prog)s v0.1.0')
-    parser.add_argument(
-        '--test', help='test test')
 
     scan = parser.add_argument_group('SCANNING TECHNIQUES')
     scan = scan.add_mutually_exclusive_group()

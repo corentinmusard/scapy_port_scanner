@@ -3,47 +3,47 @@
 """
 
 import threading
+import argparse
 from typing import List
 
 from scapy.all import *
 
-from .. import app
+from .. import app, log
+from .. import tcp
+from ..scan import Scan
 
 
-class AckScan(threading.Thread):
+class AckScan(Scan):
     """docstring for AckScan"""
-    def __init__(self, pool: threading.BoundedSemaphore,
-                 service: List) -> None:
+    def __init__(self, args: argparse.Namespace = None) -> None:
+        super(AckScan, self).__init__(args)
 
-        super(AckScan, self).__init__()
+        self.port_list = app.most_used_ports('tcp', self.args.top_ports)
+        self.flag = 'A'
 
-        self.pool = pool
-        self.service = service
+        self.results['filtered'] = 0
+        self.results['unfiltered'] = 0
 
-    @staticmethod
-    def init() -> None:
-        """Initialize some variables."""
-        app.results['filtered'] = 0
-        app.results['unfiltered'] = 0
+        conf.verb = 0  # Disable verbosity output from scapy
 
-    def run(self) -> None:
+    def scan(self, service: List) -> None:
         """Scan a port."""
-        target = IP(dst=app.args.target) / TCP(flags='A', dport=self.service[1])
-        res = sr1(target, timeout=app.timeout, verbose=0)
+        target = IP(dst=self.args.target) / TCP(flags=self.flag, dport=service[1])
+        res = sr1(target, timeout=self.timeout, verbose=0)
         if res is None:
-            app.results['filtered'] += 1
-            app.xprint(f'Port {self.service[1]} filtered', app.INFORMATION)
+            self.results['filtered'] += 1
+            log.log(f'Port {service[1]} filtered', log.INFORMATION)
         elif 'ICMP' in res:
             if res['ICMP'].type == 3 and res['ICMP'].code in [0, 1, 2, 9, 10, 13]:
-                app.results['filtered'] += 1
-                app.xprint(f'Port {self.service[1]} filtered', app.INFORMATION)
+                self.results['filtered'] += 1
+                log.log(f'Port {service[1]} filtered', log.INFORMATION)
             else:
-                app.xprint('error #9')
+                log.log('error #9')
         elif 'TCP' in res:
-            if res['TCP'].flags & app.TCP.RST:
-                app.results['unfiltered'] += 1
-                app.xprint(f'Port {self.service[1]} unfiltered', app.SUCCESS, 3, self.scan.verbosity)
+            if res['TCP'].flags & tcp.TCP.RST:
+                self.results['unfiltered'] += 1
+                log.log(f'Port {service[1]} unfiltered', log.SUCCESS, 3, self.verbosity)
         else:
-            app.xprint('error #10')
+            log.log('error #10')
 
         self.pool.release()

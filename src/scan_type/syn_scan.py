@@ -7,7 +7,7 @@ import argparse
 
 from scapy.all import *
 
-from .. import app
+from .. import app, log
 from .. import tcp
 from ..scan import Scan
 
@@ -32,27 +32,26 @@ class SynScan(Scan):
         res = sr1(target, timeout=self.timeout)
         if res is None:
             self.results['filtered'] += 1
-            print('a')
-            app.xprint(f'Port {service[1]} filtered', app.SUCCESS, 3, self.verbosity)
+            log.log(f'Port {service[1]} filtered', log.SUCCESS, 3, self.verbosity)
         elif 'ICMP' in res:
             if res['ICMP'].type == 3 and res['ICMP'].code in [0, 1, 2, 9, 10, 13]:
                 self.results['filtered'] += 1
-                app.xprint(f'Port {service[1]} filtered', app.INFORMATION)
+                log.log(f'Port {service[1]} filtered', log.INFORMATION)
             else:
-                app.xprint('error #1')
+                log.log('error #1')
         elif 'TCP' in res:
             if res['TCP'].flags & tcp.TCP.SYN:
                 self.results['opened'] += 1
-                app.xprint(f'Port {service[1]} {service[0]} opened', app.INFORMATION)
+                log.log(f'Port {service[1]} {service[0]} opened', log.INFORMATION)
                 seq = res.seq + 1
                 target = IP(dst=self.args.target) / TCP(flags='R', dport=service[1], seq=seq)
                 send(target)
             elif res['TCP'].flags & tcp.TCP.RST:
                 self.results['closed'] += 1
-                app.xprint(f'Port {service[1]} closed', app.SUCCESS, 2, self.verbosity)
+                log.log(f'Port {service[1]} closed', log.SUCCESS, 2, self.verbosity)
             else:
-                app.xprint('error #2')
+                log.log('error #2')
         else:
-            app.xprint('error #3')
+            log.log('error #3')
 
         self.pool.release()

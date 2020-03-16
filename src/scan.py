@@ -10,7 +10,7 @@ import abc
 import argparse
 
 from .config import arguments
-from . import app
+from . import app, log
 from .ip import IP
 
 
@@ -63,36 +63,6 @@ class Scan(threading.Thread):
         else:
             self.timeout = 0.5
 
-        """self.flag = ''
-
-        if self.args.sC:
-            self.scan_name = 'connect'
-        elif self.args.sU:
-            self.scan_name = 'udp'
-        elif self.args.sS:
-            self.scan_name = 'syn'
-            self.flag = 'S'
-        elif self.args.sF:
-            self.scan_name = 'fin'
-            self.flag = 'F'
-        elif self.args.sN:
-            self.scan_name = 'fin'
-            self.flag = ''
-        elif self.args.sX:
-            self.scan_name = 'fin'
-            self.flag = 'FPU'
-        elif self.args.sA:
-            self.scan_name = 'ack'
-        elif self.args.scanflags:
-            self.scan_name = 'syn'
-            self.flag = TCP.scanflags(self.args.scanflags)
-            # app.xprint(f'Starting scan with flag : {flag}')
-            # FIXME: ^
-        else:
-            app.xprint('No scan type choosed')
-            exit()
-        """
-
     def run(self) -> None:
         """Run the scan."""
         threads: List[threading.Thread] = []
@@ -117,10 +87,10 @@ class Scan(threading.Thread):
 
         for key in self.results:
             if key is not None:
-                out += f'{app.Colors.information} {self.results[key]} ports {key}\n'
+                out += f'{log.Colors.information} {self.results[key]} ports {key}\n'
 
         if start_time is not None:
-            out += f'{app.Colors.information} Duration : {datetime.now() - start_time}\n'
+            out += f'{log.Colors.information} Duration : {datetime.now() - start_time}\n'
 
         return out
 
@@ -131,17 +101,17 @@ class Scan(threading.Thread):
         out += f'Scan for {self.args.target} with IP {self.hostip}\n'
 
         if self.scan_status is NOT_STARTED:
-            out += f'Scan: {app.Colors.red}NOT STARTED{app.Colors.end}\n'
+            out += f'Scan: {log.Colors.red}NOT STARTED{log.Colors.end}\n'
         elif self.scan_status is STARTED:
-            out += f'Scan: {app.Colors.blue}STARTED{app.Colors.end}\n'
+            out += f'Scan: {log.Colors.blue}STARTED{log.Colors.end}\n'
             out += self.get_status()
         elif self.scan_status is ENDED:
-            out += f'Scan: {app.Colors.green}ENDED{app.Colors.end}\n'
+            out += f'Scan: {log.Colors.green}ENDED{log.Colors.end}\n'
             out += self.get_status()
         else:
             raise Exception(f'Scan\'s status not implemented: {self.scan_status}')
 
-        app.xprint(out, app.INFORMATION)
+        log.log(out, log.INFORMATION)
 
     @abc.abstractmethod
     def scan(self, service: List) -> None:

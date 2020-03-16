@@ -5,45 +5,8 @@
 # TODO: faire de ce fichier un namespace
 
 from typing import List, Iterator
-import sys
 
 # results: Dict[str, Any] = {}
-
-SUCCESS = 1
-FAILURE = 2
-INFORMATION = 3
-
-
-def xprint(content: str = '', design: int = INFORMATION,
-           verbosity: int = 0, current_verbosity: int = 0) -> None:
-    """Print strings to stdout."""
-    begin = ''
-    if design == 1:
-        begin = Colors.success
-    elif design == 2:
-        begin = Colors.failure
-    elif design == 3:
-        begin = Colors.information
-
-    if current_verbosity >= verbosity:
-        sys.stdout.write(begin + content + '\n')
-        sys.stdout.flush()
-
-
-class Colors:
-    """Constants for coloring output."""
-
-    red = '\033[1;31m'
-    green = '\033[1;32m'
-    blue = '\033[1;34m'
-    end = '\033[0m'
-
-    success = green + '[+]' + end + ' '
-    failure = red + '[-]' + end + ' '
-    information = blue + '[*]' + end + ' '
-
-    def __init__(self) -> None:
-        pass
 
 
 def is_tool(name: str) -> bool:

@@ -6,7 +6,7 @@ from typing import List
 import socket
 import argparse
 
-from .. import app
+from .. import app, log
 from ..scan import Scan
 
 
@@ -30,10 +30,10 @@ class ConnectScan(Scan):
         sock = socket.socket(self.family, socket.SOCK_STREAM)
         sock.settimeout(self.timeout)
         if not sock.connect_ex((self.args.target, service[1])):
-            app.xprint(f'Port {service[1]} {service[0]} opened', app.SUCCESS)
+            log.log(f'Port {service[1]} {service[0]} opened', log.SUCCESS)
             self.results['opened'] += 1
         else:
-            app.xprint(f'Port {service[1]} closed', app.FAILURE, 1, self.verbosity)
+            log.log(f'Port {service[1]} closed', log.FAILURE, 1, self.verbosity)
             self.results['closed'] += 1
         sock.close()
 

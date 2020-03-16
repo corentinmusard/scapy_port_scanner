@@ -10,7 +10,7 @@ from src.tcp import TCP
 class TestTcp(unittest.TestCase):
     """Tests of TCP class"""
 
-    def test_scanflags(self):
+    def test_scanflags(self) -> None:
         """scanflags"""
         self.assertEqual(TCP.scanflags(""), "")
         self.assertEqual(TCP.scanflags("FIN"), "F")

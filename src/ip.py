@@ -1,16 +1,12 @@
 """
-    A module docstring.
+    IP layer
 """
 
 import ipaddress
 
 
 class IP:
-    """docstring for IP"""
-
-    def __init__(self) -> None:
-        pass
-
+    """Basics checks of an ip adress."""
     @classmethod
     def is_ip(cls, ip: str) -> bool:
         """Check if the string argument is an IP (IPv4 or IPV6)."""
